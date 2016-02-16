@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Swagger UI</title>
+    <link href='/switch/webjars/springfox-swagger-ui/css/typography.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='/switch/webjars/springfox-swagger-ui/css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='/switch/webjars/springfox-swagger-ui/css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
+    <link href='/switch/webjars/springfox-swagger-ui/css/reset.css' media='print' rel='stylesheet' type='text/css'/>
+    <link href='/switch/webjars/springfox-swagger-ui/css/screen.css' media='print' rel='stylesheet' type='text/css'/>
+    <script src='/switch/webjars/springfox-swagger-ui/lib/jquery-1.8.0.min.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/lib/jquery.slideto.min.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/lib/jquery.wiggle.min.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/lib/handlebars-2.0.0.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/lib/underscore-min.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/lib/backbone-min.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/swagger-ui.min.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/springfox.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/lib/highlight.7.3.pack.js' type='text/javascript'></script>
+    <script src='/switch/webjars/springfox-swagger-ui/lib/marked.js' type='text/javascript'></script>
+
+    <!-- enabling this will enable oauth2 implicit scope support -->
+    <script src='/switch/webjars/springfox-swagger-ui/lib/swagger-oauth.js' type='text/javascript'></script>
+    <script type="text/javascript">
+        $(function() {
+        	String.prototype.endsWith = function(suffix) {
+        	    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+        	};
+        	
+            var security = {};
+            var validatorUrl = null;
+            var url = "";
+            window.springfox.baseUrl= function() {
+            	if(window.location.href.endsWith("/docs/")){
+            		return window.location.href.replace("/docs/", "");
+            	}else if(window.location.href.endsWith("/docs")){
+            		return window.location.href.replace("/docs", "");
+            	}else{
+            		var urlMatches = /(.*)\/index.html.*/.exec(window.location.href);
+        	        return urlMatches[1].replace("/docs", "");
+            	}
+    	    }
+            
+            window.springfox.securityConfig(function(data) {
+                security = data;
+            });
+
+            window.springfox.uiConfig(function(data) {
+            	$.each(data, function(a, b){
+            		url = b;
+            	});
+            });
+            
+            window.swaggerUi = new SwaggerUi({
+                validatorUrl: url,
+                dom_id: "swagger-ui-container",
+                supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+                onComplete: function(swaggerApi, swaggerUi) {
+                    if (typeof initOAuth == "function" && security) {
+                        if (security.clientId && security.appName && security.realm) {
+                            initOAuth(security);
+                        }
+                    }
+                    $('pre code').each(function(i, e) {
+                        hljs.highlightBlock(e)
+                    });
+                },
+                onFailure: function(data) {
+                },
+                docExpansion: "none",
+                sorter: "alpha"
+            });
+
+            function addApiKeyAuthorization() {
+                var key = $('#input_apiKey').val();
+                if (key && key.trim() != "") {
+                    window.swaggerUi.api.clientAuthorizations.add("api_key", new SwaggerClient.ApiKeyAuthorization("Authorization", "Bearer " + key, "header"));
+                }
+            }
+
+            $('#input_apiKey').change(function() {
+                addApiKeyAuthorization();
+            });
+
+            if (security.apiKey) {
+                $('#input_apiKey').val(security.apiKey);
+                addApiKeyAuthorization();
+            }
+
+        });
+    </script>
+</head>
+
+<body class="swagger-section">
+<div id='header'>
+    <div class="swagger-ui-wrap">
+        <a id="logo" href="http://swagger.io">swagger</a>
+
+        <form id='api_selector'>
+            <div class='input'>
+                <select id="select_baseUrl" name="select_baseUrl"/>
+            </div>
+            <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl"
+                                      type="text"/></div>
+            <div class='input'><input placeholder="api_key" id="input_apiKey" name="apiKey" type="text"/></div>
+            <div class='input'><a id="explore" href="#">Explore</a></div>
+        </form>
+    </div>
+</div>
+
+<div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
+<div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+</body>
+</html>
